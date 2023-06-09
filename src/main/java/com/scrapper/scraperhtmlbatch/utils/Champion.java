@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Champion {
-    public static ArrayList<Champion> championsList = new ArrayList();
     private String name;
     private String url;
     private Spell passive;
@@ -13,7 +12,6 @@ public class Champion {
     public Champion(String url) {
         this.url = url;
         extractNameFromUrl();
-        championsList.add(this);
 
     }
 
@@ -58,5 +56,25 @@ public class Champion {
 
     public void addSpells(Spell spell) {
         this.spells.add(spell);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Champion: ").append(name).append("\n");
+        sb.append("URL: ").append(url).append("\n");
+
+        if (passive != null) {
+            sb.append("Passive: ").append(passive.toString()).append("\n");
+        }
+
+        if (!spells.isEmpty()) {
+            sb.append("Spells:").append("\n");
+            for (Spell spell : spells) {
+                sb.append(spell.toString()).append("\n");
+            }
+        }
+
+        return sb.toString();
     }
 }
