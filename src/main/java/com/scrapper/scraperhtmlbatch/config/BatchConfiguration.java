@@ -1,12 +1,20 @@
 package com.scrapper.scraperhtmlbatch.config;
 
+import com.scrapper.scraperhtmlbatch.jobs.DbWriter;
 import com.scrapper.scraperhtmlbatch.jobs.SpellEffectProcessor;
 import com.scrapper.scraperhtmlbatch.jobs.WebsiteReader;
+import org.hibernate.SessionFactory;
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
+@Import(DataSourceConfiguration.class)
+//@EnableBatchProcessing
 public class BatchConfiguration {
     @Value("${website.url}")
     private String websiteUrl;
@@ -27,6 +35,12 @@ public class BatchConfiguration {
         return spellEffectProcessor;
     }
 
+    @Bean
+    public DbWriter dbWriter(SessionFactory sessionFactory) {
+        return new DbWriter(sessionFactory);
+    }
+
+
     private String extractBaseUrl(String url) {
         int slashIndex = url.indexOf("/");
         if (slashIndex != -1) {
@@ -40,6 +54,8 @@ public class BatchConfiguration {
             return url;
         }
     }
+
+
 
 
     // Other bean configurations...

@@ -1,11 +1,11 @@
-package com.scrapper.scraperhtmlbatch.model;
+package com.scrapper.scraperhtmlbatch.models;
 
 import jakarta.persistence.*;
 
 import java.util.Objects;
 
 @Entity
-@Table(name = "spell_effect", schema = "LolDB", catalog = "LolDB")
+@Table(name = "spell_effect")
 @IdClass(SpellEffectPK.class)
 public class SpellEffect {
     @GeneratedValue(strategy = GenerationType.IDENTITY)

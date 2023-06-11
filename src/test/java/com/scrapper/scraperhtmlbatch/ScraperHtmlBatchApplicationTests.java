@@ -1,35 +1,49 @@
 package com.scrapper.scraperhtmlbatch;
 
 import com.scrapper.scraperhtmlbatch.config.BatchConfiguration;
+import com.scrapper.scraperhtmlbatch.jobs.DbWriter;
 import com.scrapper.scraperhtmlbatch.jobs.SpellEffectProcessor;
 import com.scrapper.scraperhtmlbatch.jobs.WebsiteReader;
-import com.scrapper.scraperhtmlbatch.model.SpellEffect;
+import com.scrapper.scraperhtmlbatch.models.Champions;
+import com.scrapper.scraperhtmlbatch.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
 import org.apache.log4j.Logger;
+import org.hibernate.*;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ContextConfiguration(classes = BatchConfiguration.class)
-public class ScraperAbilitiesBatchApplicationTests {
+public class ScraperHtmlBatchApplicationTests {
 
     @Autowired
     private WebsiteReader websiteUrl;
 
     @Autowired
     private SpellEffectProcessor spellEffectProcessor;
+    @Autowired
+    private DbWriter dbWriter;
 
-    private static final org.apache.log4j.Logger logger = Logger.getLogger(ScraperAbilitiesBatchApplicationTests.class);
+    private static final org.apache.log4j.Logger logger = Logger.getLogger(ScraperHtmlBatchApplicationTests.class);
 
 
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
     @Test
     public void testScrapeChampions() {
         // Définir l'URL du site à scraper
@@ -49,8 +63,9 @@ public class ScraperAbilitiesBatchApplicationTests {
         }
 
         logger.info("Array List champions : " + championList.size());
-        Assertions.assertTrue(!championList.isEmpty());
+        Assertions.assertFalse(championList.isEmpty());
     }
+
     @Test
     public void testScrapeSkillsString() {
         // Définir l'URL du site à scraper
@@ -58,11 +73,12 @@ public class ScraperAbilitiesBatchApplicationTests {
         // Appeler la fonction scrapeSkillsString pour obtenir la liste des compétences
 
         List<Champion> championList = websiteUrl.scrapeChampionsLink();
-        Assertions.assertTrue(!championList.isEmpty());
+        Assertions.assertFalse(championList.isEmpty());
         websiteUrl.updateSpells(championList.get(0));
 
         logger.info(championList.get(0));
     }
+
     @Test
     public void testUpdateAllSpells() {
 
@@ -71,7 +87,7 @@ public class ScraperAbilitiesBatchApplicationTests {
 
 
         logger.info(championList.get(0));
-        Assertions.assertTrue(!championList.get(0).getSpells().isEmpty());
+        Assertions.assertFalse(championList.get(0).getSpells().isEmpty());
 
     }
 
@@ -82,7 +98,7 @@ public class ScraperAbilitiesBatchApplicationTests {
         // Appeler la fonction scrapeSkillsString pour obtenir la liste des compétences
 
         List<Champion> championList = websiteUrl.scrapeChampionsLink();
-        Assertions.assertTrue(!championList.isEmpty());
+        Assertions.assertFalse(championList.isEmpty());
         websiteUrl.updateSpells(championList.get(0));
 
         logger.info(championList.get(0));
@@ -96,17 +112,18 @@ public class ScraperAbilitiesBatchApplicationTests {
         List<Champion> championList = websiteUrl.read();
         List<SpellEffect> spellEffects = spellEffectProcessor.process(championList);
         spellEffects.forEach(spellEffect -> logger.info(spellEffect));
-        Assertions.assertTrue(!spellEffects.isEmpty());
+        Assertions.assertFalse(spellEffects.isEmpty());
     }
 
     @Test
     public void testReader() throws Exception {
         List<Champion> championList = websiteUrl.read();
-        Assertions.assertTrue(!championList.isEmpty());
-        Assertions.assertTrue(!championList.get(0).getSpells().isEmpty());
+        Assertions.assertFalse(championList.isEmpty());
+        Assertions.assertFalse(championList.get(0).getSpells().isEmpty());
     }
+
     @Test
-    public void extractNameOfUrl(){
+    public void extractNameOfUrl() {
         String url = "https://www.mobafire.com/league-of-legends/champion/xerath-177";
 
 // Trouver la position du dernier "/"
@@ -117,8 +134,41 @@ public class ScraperAbilitiesBatchApplicationTests {
 // Extraire la partie entre le dernier "/" et le dernier "-"
         String name = url.substring(lastSlashIndex + 1, lastDashIndex);
         logger.info(name);
-        Assertions.assertEquals(name,"xerath");
+        Assertions.assertEquals(name, "xerath");
 
+    }
+
+
+    @Test
+    public void dbreadChampionTest() {
+
+        Champions aatrox = dbWriter.readChampion("Aatrox");
+        logger.info(aatrox);
+        Assertions.assertTrue(aatrox.getName().equals("Aatrox"));
+    }
+
+    @Test
+    public void dbreadSpellEffectTest() {
+
+        List<SpellEffect> spellEffects = dbWriter.readAllSpellEffects();
+        logger.info(spellEffects);
+        Assertions.assertTrue(!spellEffects.isEmpty());
+    }
+
+
+    @Test
+    public void completeJob() throws Exception {
+        List<Champion> championList = websiteUrl.read();
+        List<SpellEffect> spellEffects = spellEffectProcessor.process(championList);
+
+        Chunk<SpellEffect> chunk = new Chunk<>(spellEffects);
+        dbWriter.write(chunk);
+
+
+        List<SpellEffect> spellEffectsRead = dbWriter.readAllSpellEffects();
+        spellEffectsRead.forEach(logger::info);
+
+        Assertions.assertFalse(spellEffectsRead.isEmpty());
     }
 
 }

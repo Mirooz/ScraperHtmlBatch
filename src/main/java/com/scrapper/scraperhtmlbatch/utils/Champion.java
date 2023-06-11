@@ -3,6 +3,7 @@ package com.scrapper.scraperhtmlbatch.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Champion {
     private String name;
     private String url;
@@ -55,7 +56,33 @@ public class Champion {
     }
 
     public void addSpells(Spell spell) {
-        this.spells.add(spell);
+        String spellLetter = spell.getLetter();
+        int count = 1;
+        boolean letterExists = isLetterExists(spellLetter);
+
+        if (spellLetter == null || !letterExists) {
+            // Premier sort ajouté ou lettre inexistante, pas de suffixe
+            spells.add(spell);
+            return;
+        }
+
+        String newLetter = spellLetter + count;
+        while (isLetterExists(newLetter)) {
+            count++;
+            newLetter = spellLetter + count;
+        }
+        spell.setLetter(newLetter);
+
+        spells.add(spell);
+    }
+
+    private boolean isLetterExists(String letter) {
+        for (Spell existingSpell : spells) {
+            if (existingSpell.getLetter() != null && existingSpell.getLetter().equals(letter)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -65,7 +92,7 @@ public class Champion {
         sb.append("URL: ").append(url).append("\n");
 
         if (passive != null) {
-            sb.append("Passive: ").append(passive.toString()).append("\n");
+            sb.append("Passive: ").append(passive).append("\n");
         }
 
         if (!spells.isEmpty()) {

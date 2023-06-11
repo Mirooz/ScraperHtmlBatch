@@ -1,7 +1,10 @@
 package com.scrapper.scraperhtmlbatch.jobs;
 
+import com.scrapper.scraperhtmlbatch.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
 import com.scrapper.scraperhtmlbatch.utils.Spell;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -15,13 +18,16 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+/**
+ * The type Website reader.
+ */
 @Component
 public class WebsiteReader implements ItemReader<List<Champion>> {
 
     private String websiteUrl; // URL du site web à scraper
     private String websiteBaseUrl;
-    private int currentPage = 1; // Page courante à scraper
-    private boolean hasNextPage = true; // Indique s'il y a une page suivante à scraper
+    private final int currentPage = 1; // Page courante à scraper
+    private final boolean hasNextPage = true; // Indique s'il y a une page suivante à scraper
 
     private static final Logger logger = Logger.getLogger(WebsiteReader.class);
 
@@ -35,6 +41,11 @@ public class WebsiteReader implements ItemReader<List<Champion>> {
         return championList;
     }
 
+    /**
+     * Scrape champions link list.
+     *
+     * @return the list
+     */
     public List<Champion> scrapeChampionsLink() {
         List<Champion> championList = getHrefFromUrlWithAttribute(websiteUrl, ".champ-list__item", "href");
 
@@ -51,7 +62,6 @@ public class WebsiteReader implements ItemReader<List<Champion>> {
             for (Element element : elements) {
                 String link = element.attr(attribute);
                 championList.add(new Champion(link));
-                ;
             }
 
         } catch (IOException e) {
@@ -62,6 +72,11 @@ public class WebsiteReader implements ItemReader<List<Champion>> {
     }
 
 
+    /**
+     * Update spells.
+     *
+     * @param champion the champion
+     */
     public void updateSpells(Champion champion) {
         String url = websiteBaseUrl + champion.getUrl();
         String css = ".champ__abilities__item";
@@ -169,18 +184,38 @@ public class WebsiteReader implements ItemReader<List<Champion>> {
 
     }
 
+    /**
+     * Update spells for all champs.
+     *
+     * @param championList the champion list
+     */
     public void updateSpellsForAllChamps(List<Champion> championList) {
         championList.forEach(this::updateSpells);
     }
 
+    /**
+     * Sets website url.
+     *
+     * @param websiteUrl the website url
+     */
     public void setWebsiteUrl(String websiteUrl) {
         this.websiteUrl = websiteUrl;
     }
 
+    /**
+     * Gets website base url.
+     *
+     * @return the website base url
+     */
     public String getWebsiteBaseUrl() {
         return websiteBaseUrl;
     }
 
+    /**
+     * Sets website base url.
+     *
+     * @param websiteBaseUrl the website base url
+     */
     public void setWebsiteBaseUrl(String websiteBaseUrl) {
         this.websiteBaseUrl = websiteBaseUrl;
     }
@@ -191,4 +226,5 @@ public class WebsiteReader implements ItemReader<List<Champion>> {
         }
         return input.substring(0, 1).toUpperCase() + input.substring(1);
     }
+
 }

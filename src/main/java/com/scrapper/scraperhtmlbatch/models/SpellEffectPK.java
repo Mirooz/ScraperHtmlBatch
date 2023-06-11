@@ -1,4 +1,4 @@
-package com.scrapper.scraperhtmlbatch.model;
+package com.scrapper.scraperhtmlbatch.models;
 
 import jakarta.persistence.*;
 
@@ -8,12 +8,10 @@ import java.util.Objects;
 public class SpellEffectPK implements Serializable {
     @Column(name = "champion_name")
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String championName;
     @Column(name = "letter")
     @Basic
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String letter;
 
     public String getChampionName() {
