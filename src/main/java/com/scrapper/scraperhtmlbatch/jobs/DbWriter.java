@@ -12,28 +12,29 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class DbWriter implements ItemWriter<SpellEffect> {
+public class DbWriter implements ItemWriter<List<SpellEffect>> {
+
 
     private final SessionFactory sessionFactory;
     private static final Logger logger = Logger.getLogger(DbWriter.class);
 
+    @Autowired
     public DbWriter(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 
-
     @Override
-    public void write(Chunk<? extends SpellEffect> chunk) throws Exception {
-        Session session = null;
-        Transaction transaction = null;
-        try {
-            session = sessionFactory.openSession();
-            transaction = session.beginTransaction();
+    public void write(Chunk<? extends List<SpellEffect>> chunk) throws Exception {
+        Session session = sessionFactory.openSession();
 
-            for (SpellEffect spellEffect : chunk.getItems()) {
+        Transaction transaction = session.beginTransaction();
+
+        for (List<SpellEffect> ts : chunk) {
+            for (SpellEffect spellEffect : ts) {
                 try {
                     if (!session.contains(spellEffect)) {
                         session.merge(spellEffect);
@@ -41,28 +42,17 @@ public class DbWriter implements ItemWriter<SpellEffect> {
                         logger.info("Déjà persisté : " + spellEffect);
                     }
                 } catch (Exception e) {
+                    transaction.rollback();
                     logger.error("Exception during write operation: ", e);
                     logger.error("Error processing spellEffect: " + spellEffect);
-                    if (transaction != null) {
-                        transaction.rollback();
-                    }
                     throw new Exception("Error during write operation", e);
                 }
             }
-
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            throw e;
-        } finally {
-            if (session != null) {
-                session.close();
-            }
         }
-    }
 
+        transaction.commit();
+        session.close();
+    }
 
 
     public Champions readChampion(String championName) {
@@ -97,4 +87,6 @@ public class DbWriter implements ItemWriter<SpellEffect> {
         }
         return null;
     }
+
+
 }

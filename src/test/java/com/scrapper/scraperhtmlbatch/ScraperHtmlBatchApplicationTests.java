@@ -8,7 +8,6 @@ import com.scrapper.scraperhtmlbatch.models.Champions;
 import com.scrapper.scraperhtmlbatch.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
 import org.apache.log4j.Logger;
-import org.hibernate.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,19 +17,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ContextConfiguration(classes = BatchConfiguration.class)
 public class ScraperHtmlBatchApplicationTests {
 
     @Autowired
-    private WebsiteReader websiteUrl;
+    private WebsiteReader websiteReader;
 
     @Autowired
     private SpellEffectProcessor spellEffectProcessor;
@@ -50,7 +48,7 @@ public class ScraperHtmlBatchApplicationTests {
         //String websiteUrl = "https://www.mobafire.com/league-of-legends/champions";
 
         // Appeler la fonction scrapeChampions pour obtenir la liste des champions
-        List<Champion> championList = websiteUrl.scrapeChampionsLink();
+        List<Champion> championList = websiteReader.scrapeChampionsLink();
 
         // Vérifier que la liste n'est pas vide
         Assertions.assertNotNull(championList);
@@ -72,9 +70,9 @@ public class ScraperHtmlBatchApplicationTests {
 
         // Appeler la fonction scrapeSkillsString pour obtenir la liste des compétences
 
-        List<Champion> championList = websiteUrl.scrapeChampionsLink();
+        List<Champion> championList = websiteReader.scrapeChampionsLink();
         Assertions.assertFalse(championList.isEmpty());
-        websiteUrl.updateSpells(championList.get(0));
+        websiteReader.updateSpells(championList.get(0));
 
         logger.info(championList.get(0));
     }
@@ -82,8 +80,8 @@ public class ScraperHtmlBatchApplicationTests {
     @Test
     public void testUpdateAllSpells() {
 
-        List<Champion> championList = websiteUrl.scrapeChampionsLink();
-        websiteUrl.updateSpellsForAllChamps(championList);
+        List<Champion> championList = websiteReader.scrapeChampionsLink();
+        websiteReader.updateSpellsForAllChamps(championList);
 
 
         logger.info(championList.get(0));
@@ -97,9 +95,9 @@ public class ScraperHtmlBatchApplicationTests {
 
         // Appeler la fonction scrapeSkillsString pour obtenir la liste des compétences
 
-        List<Champion> championList = websiteUrl.scrapeChampionsLink();
+        List<Champion> championList = websiteReader.scrapeChampionsLink();
         Assertions.assertFalse(championList.isEmpty());
-        websiteUrl.updateSpells(championList.get(0));
+        websiteReader.updateSpells(championList.get(0));
 
         logger.info(championList.get(0));
         List<SpellEffect> spellEffects = spellEffectProcessor.spellForChamp(championList.get(0));
@@ -109,7 +107,7 @@ public class ScraperHtmlBatchApplicationTests {
 
     @Test
     public void testProcessorSpellsEffectAll() throws Exception {
-        List<Champion> championList = websiteUrl.read();
+        List<Champion> championList = websiteReader.read();
         List<SpellEffect> spellEffects = spellEffectProcessor.process(championList);
         spellEffects.forEach(spellEffect -> logger.info(spellEffect));
         Assertions.assertFalse(spellEffects.isEmpty());
@@ -117,7 +115,7 @@ public class ScraperHtmlBatchApplicationTests {
 
     @Test
     public void testReader() throws Exception {
-        List<Champion> championList = websiteUrl.read();
+        List<Champion> championList = websiteReader.read();
         Assertions.assertFalse(championList.isEmpty());
         Assertions.assertFalse(championList.get(0).getSpells().isEmpty());
     }
@@ -155,15 +153,25 @@ public class ScraperHtmlBatchApplicationTests {
         Assertions.assertTrue(!spellEffects.isEmpty());
     }
 
-
+    @Test
+    public void testDbWriter() throws Exception {
+        List<SpellEffect> spellEffects = new ArrayList<>();
+        SpellEffect s = new SpellEffect();
+        s.setChampionName("Aatrox");
+        s.setLetter("Q");
+        spellEffects.add(s);
+        // Ajoutez des SpellEffect à la liste
+        Chunk<List<SpellEffect>> chunk = new Chunk<>(Collections.singletonList(spellEffects));
+        dbWriter.write(chunk);
+        // Assurez-vous de gérer les exceptions appropriées
+    }
     @Test
     public void completeJob() throws Exception {
-        List<Champion> championList = websiteUrl.read();
+        List<Champion> championList = websiteReader.read();
         List<SpellEffect> spellEffects = spellEffectProcessor.process(championList);
 
-        Chunk<SpellEffect> chunk = new Chunk<>(spellEffects);
+        Chunk<List<SpellEffect>> chunk = new Chunk<>(Collections.singletonList(spellEffects));
         dbWriter.write(chunk);
-
 
         List<SpellEffect> spellEffectsRead = dbWriter.readAllSpellEffects();
         spellEffectsRead.forEach(logger::info);
