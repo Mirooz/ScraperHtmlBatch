@@ -1,5 +1,4 @@
-/*
-package com.scrapper.scraperhtmlbatch.config;
+package com.scrapper.scraperhtmlbatch.controllers;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -16,17 +15,16 @@ public class BatchController {
     private JobLauncher jobLauncher;
 
     @Autowired
-    private Job yourJob;  // Remplacez "yourJob" par le nom de votre propre job
+    private Job sampleJob;  // Remplacez "yourJob" par le nom de votre propre job
 
-    @PostMapping
+    @PostMapping()
     public void executeBatch() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
                     .toJobParameters();
-            jobLauncher.run(yourJob, jobParameters);
+            jobLauncher.run(sampleJob, jobParameters);
         } catch (Exception e) {
             // Gérer l'exception en conséquence
         }
     }
 }
-*/

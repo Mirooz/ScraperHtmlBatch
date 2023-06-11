@@ -157,7 +157,7 @@ public class ScraperHtmlBatchApplicationTests {
     public void testDbWriter() throws Exception {
         List<SpellEffect> spellEffects = new ArrayList<>();
         SpellEffect s = new SpellEffect();
-        s.setChampionName("Aatrox");
+        s.setChampionName("Aatrox" );
         s.setLetter("Q");
         spellEffects.add(s);
         // Ajoutez des SpellEffect à la liste

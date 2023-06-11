@@ -5,35 +5,48 @@ import com.scrapper.scraperhtmlbatch.jobs.SpellEffectProcessor;
 import com.scrapper.scraperhtmlbatch.jobs.WebsiteReader;
 import com.scrapper.scraperhtmlbatch.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
+import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 
 @Configuration
+@EnableBatchProcessing
 @Import(DataSourceConfiguration.class)
-//@EnableBatchProcessing
 public class BatchConfiguration {
+
+
+
+    private final SessionFactory sessionFactory;
+
+
+
+    public BatchConfiguration(SessionFactory sessionFactory){
+        this.sessionFactory = sessionFactory;
+    }
     @Value("${website.url}")
     private String websiteUrl;
 
     @Bean
-    public WebsiteReader websiteReader() {
+    public WebsiteReader getWebsiteReader() {
         WebsiteReader reader = new WebsiteReader();
         reader.setWebsiteUrl(websiteUrl);
 
@@ -43,10 +56,12 @@ public class BatchConfiguration {
     }
 
     @Bean
-    public SpellEffectProcessor spellEffectProcessor() {
+    public SpellEffectProcessor getSpellEffectProcessor() {
         SpellEffectProcessor spellEffectProcessor = new SpellEffectProcessor();
         return spellEffectProcessor;
     }
+
+
 
     @Bean
     public DbWriter dbWriter(SessionFactory sessionFactory) {
@@ -68,18 +83,39 @@ public class BatchConfiguration {
         }
     }
 
-    /*@Autowired
-    private SessionFactory sessionFactory;
+
+    @Bean
+    public PlatformTransactionManager transactionManager() {
+        return new ResourcelessTransactionManager();
+    }
+
+
     @Bean
     public Step sampleStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("sampleStep")
                 .repository(jobRepository)
-                .<List<Champion>, List<SpellEffect>>chunk(10)
-                .reader(websiteReader())
-                .processor(spellEffectProcessor())
+                .<List<Champion>, List<SpellEffect>>chunk(10,transactionManager)
+                .reader(getWebsiteReader())
+                .processor(getSpellEffectProcessor())
                 .writer(dbWriter(sessionFactory))
                 .build();
-    }*/
+    }
+
+    @Bean
+    public Job sampleJob(JobRepository jobRepository, Step sampleStep) {
+        return new JobBuilder("sampleJob", jobRepository)
+                .start(sampleStep)
+                .build();
+    }
+    @Bean
+    public JobLauncher jobLauncher(JobRepository jobRepository) throws Exception {
+        TaskExecutorJobLauncher jobLauncher = new TaskExecutorJobLauncher();
+        jobLauncher.setJobRepository(jobRepository);
+        jobLauncher.afterPropertiesSet();
+        return jobLauncher;
+    }
+
+
 
     // Other bean configurations...
 }

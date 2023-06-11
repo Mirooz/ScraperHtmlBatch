@@ -1,5 +1,6 @@
     package com.scrapper.scraperhtmlbatch.config;
 
+    import jakarta.persistence.EntityManagerFactory;
     import org.hibernate.SessionFactory;
     import org.springframework.beans.factory.annotation.Value;
     import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -8,6 +9,8 @@
     import org.springframework.jdbc.core.JdbcTemplate;
     import org.springframework.jdbc.datasource.DriverManagerDataSource;
     import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+    import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+    import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
     import javax.sql.DataSource;
     import java.util.Properties;
@@ -48,7 +51,7 @@
             return new JdbcTemplate(dataSource);
         }
 
-        @Bean
+        @Bean("entityManagerFactory")
         public SessionFactory sessionFactory() throws Exception {
             LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
             sessionFactoryBean.setDataSource(dataSource());
@@ -57,5 +60,7 @@
             sessionFactoryBean.afterPropertiesSet();
             return sessionFactoryBean.getObject();
         }
+
+
 
     }
