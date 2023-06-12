@@ -6,11 +6,9 @@ import java.util.Objects;
 @Entity
 @Table(name = "spell_effect")
 public class SpellEffect {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "champion_name")
     private String championName;
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Basic
     @Column(name = "letter")

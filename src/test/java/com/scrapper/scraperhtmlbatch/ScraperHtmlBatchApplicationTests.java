@@ -1,12 +1,14 @@
 package com.scrapper.scraperhtmlbatch;
 
 import com.scrapper.scraperhtmlbatch.config.BatchConfiguration;
+import com.scrapper.scraperhtmlbatch.utils.ChampionScraper;
 import com.scrapper.scraperhtmlbatch.jobs.DbWriter;
 import com.scrapper.scraperhtmlbatch.jobs.SpellEffectProcessor;
 import com.scrapper.scraperhtmlbatch.jobs.WebsiteReader;
 import com.scrapper.scraperhtmlbatch.models.Champions;
 import com.scrapper.scraperhtmlbatch.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
+import com.scrapper.scraperhtmlbatch.utils.Utils;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.mockito.MockitoAnnotations;
 import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest
@@ -29,6 +30,10 @@ public class ScraperHtmlBatchApplicationTests {
 
     @Autowired
     private WebsiteReader websiteReader;
+
+
+    @Autowired
+    private ChampionScraper championScraper;
 
     @Autowired
     private SpellEffectProcessor spellEffectProcessor;
@@ -40,16 +45,20 @@ public class ScraperHtmlBatchApplicationTests {
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        websiteReader.setWebsiteBaseUrl(Utils.extractBaseUrl(championScraper.getWebsiteUrl()));
+        List<Champion> championList = championScraper.scrapeChampionsLink();
+        websiteReader.setChampionList(championList);
     }
+
     @Test
     public void testScrapeChampions() {
         // Définir l'URL du site à scraper
         //String websiteUrl = "https://www.mobafire.com/league-of-legends/champions";
 
         // Appeler la fonction scrapeChampions pour obtenir la liste des champions
-        List<Champion> championList = websiteReader.scrapeChampionsLink();
+        List<Champion> championList = championScraper.scrapeChampionsLink();
 
+        websiteReader.setChampionList(championList);
         // Vérifier que la liste n'est pas vide
         Assertions.assertNotNull(championList);
         Assertions.assertFalse(championList.isEmpty());
@@ -70,7 +79,7 @@ public class ScraperHtmlBatchApplicationTests {
 
         // Appeler la fonction scrapeSkillsString pour obtenir la liste des compétences
 
-        List<Champion> championList = websiteReader.scrapeChampionsLink();
+        List<Champion> championList = championScraper.scrapeChampionsLink();
         Assertions.assertFalse(championList.isEmpty());
         websiteReader.updateSpells(championList.get(0));
 
@@ -80,7 +89,7 @@ public class ScraperHtmlBatchApplicationTests {
     @Test
     public void testUpdateAllSpells() {
 
-        List<Champion> championList = websiteReader.scrapeChampionsLink();
+        List<Champion> championList = championScraper.scrapeChampionsLink();
         websiteReader.updateSpellsForAllChamps(championList);
 
 
@@ -95,7 +104,7 @@ public class ScraperHtmlBatchApplicationTests {
 
         // Appeler la fonction scrapeSkillsString pour obtenir la liste des compétences
 
-        List<Champion> championList = websiteReader.scrapeChampionsLink();
+        List<Champion> championList = championScraper.scrapeChampionsLink();
         Assertions.assertFalse(championList.isEmpty());
         websiteReader.updateSpells(championList.get(0));
 
@@ -107,18 +116,26 @@ public class ScraperHtmlBatchApplicationTests {
 
     @Test
     public void testProcessorSpellsEffectAll() throws Exception {
-        List<Champion> championList = websiteReader.read();
-        List<SpellEffect> spellEffects = spellEffectProcessor.process(championList);
-        spellEffects.forEach(spellEffect -> logger.info(spellEffect));
-        Assertions.assertFalse(spellEffects.isEmpty());
+        List<SpellEffect> spellEffectsTotal = new ArrayList<>();
+        Champion read;
+        while ((read = websiteReader.read()) != null) {
+
+            List<SpellEffect> spellEffects = spellEffectProcessor.spellForChamp(read);
+            spellEffectsTotal.addAll(spellEffectProcessor.process(read));
+        }
+        spellEffectsTotal.forEach(spellEffect -> logger.info(spellEffect));
+        Assertions.assertFalse(spellEffectsTotal.isEmpty());
     }
 
     @Test
     public void testReader() throws Exception {
-        List<Champion> championList = websiteReader.read();
-        Assertions.assertFalse(championList.isEmpty());
-        Assertions.assertFalse(championList.get(0).getSpells().isEmpty());
-    }
+        Champion read;
+        while ((read = websiteReader.read()) != null) {
+
+            spellEffectProcessor.spellForChamp(read);
+        }
+        Assertions.assertFalse(websiteReader.getChampionList().isEmpty());
+        }
 
     @Test
     public void extractNameOfUrl() {
@@ -157,7 +174,7 @@ public class ScraperHtmlBatchApplicationTests {
     public void testDbWriter() throws Exception {
         List<SpellEffect> spellEffects = new ArrayList<>();
         SpellEffect s = new SpellEffect();
-        s.setChampionName("Aatrox" );
+        s.setChampionName("Aatrox");
         s.setLetter("Q");
         spellEffects.add(s);
         // Ajoutez des SpellEffect à la liste
@@ -165,13 +182,16 @@ public class ScraperHtmlBatchApplicationTests {
         dbWriter.write(chunk);
         // Assurez-vous de gérer les exceptions appropriées
     }
+
     @Test
     public void completeJob() throws Exception {
-        List<Champion> championList = websiteReader.read();
-        List<SpellEffect> spellEffects = spellEffectProcessor.process(championList);
+        Champion read;
+        while ((read = websiteReader.read()) != null) {
+            List<SpellEffect> spellEffects = spellEffectProcessor.process(read);
 
-        Chunk<List<SpellEffect>> chunk = new Chunk<>(Collections.singletonList(spellEffects));
-        dbWriter.write(chunk);
+            Chunk<List<SpellEffect>> chunk = new Chunk<>(Collections.singletonList(spellEffects));
+            dbWriter.write(chunk);
+        }
 
         List<SpellEffect> spellEffectsRead = dbWriter.readAllSpellEffects();
         spellEffectsRead.forEach(logger::info);

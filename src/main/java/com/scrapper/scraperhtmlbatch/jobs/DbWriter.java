@@ -37,7 +37,7 @@ public class DbWriter implements ItemWriter<List<SpellEffect>> {
             for (SpellEffect spellEffect : ts) {
                 try {
                     if (!session.contains(spellEffect)) {
-                        session.merge(spellEffect);
+                        session.saveOrUpdate(spellEffect);
                     } else {
                         logger.info("Déjà persisté : " + spellEffect);
                     }

@@ -1,14 +1,12 @@
 package com.scrapper.scraperhtmlbatch.jobs;
 
-import com.scrapper.scraperhtmlbatch.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
 import com.scrapper.scraperhtmlbatch.utils.Spell;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.stereotype.Component;
 
@@ -22,23 +20,45 @@ import org.apache.log4j.Logger;
  * The type Website reader.
  */
 @Component
-public class WebsiteReader implements ItemReader<List<Champion>> {
+@StepScope
+public class WebsiteReader implements ItemReader<Champion> {
+    private List<Champion> championList; // Liste des objets à lire
+    private int currentIndex = 0; // Index de l'élément actuel
 
-    private String websiteUrl; // URL du site web à scraper
+    public void setCurrentIndex(int currentIndex) {
+        this.currentIndex = currentIndex;
+    }
+
+    public List<Champion> getChampionList() {
+        return championList;
+    }
     private String websiteBaseUrl;
     private final int currentPage = 1; // Page courante à scraper
     private final boolean hasNextPage = true; // Indique s'il y a une page suivante à scraper
 
     private static final Logger logger = Logger.getLogger(WebsiteReader.class);
 
+    public WebsiteReader() {
+
+    }
+
+
+    public void setChampionList(List<Champion> championList) {
+        this.championList = championList;
+    }
 
     @Override
-    public List<Champion> read() throws Exception {
-        List<Champion> championList = scrapeChampionsLink();
+    public Champion read() {
 
-        updateSpellsForAllChamps(championList);
+        logger.info("Reading... count = " + this.currentIndex);
 
-        return championList;
+        if (currentIndex < championList.size()) {
+            Champion nextObject = championList.get(currentIndex);
+            updateSpells(nextObject);
+            currentIndex++;
+            return nextObject;
+        }
+        return null; // Aucun élément à lire, on renvoie null
     }
 
     /**
@@ -46,30 +66,6 @@ public class WebsiteReader implements ItemReader<List<Champion>> {
      *
      * @return the list
      */
-    public List<Champion> scrapeChampionsLink() {
-        List<Champion> championList = getHrefFromUrlWithAttribute(websiteUrl, ".champ-list__item", "href");
-
-        logger.info("href list size : " + championList.size());
-        return championList;
-    }
-
-    private List<Champion> getHrefFromUrlWithAttribute(String url, String css, String attribute) {
-        List<Champion> championList = new ArrayList<>();
-
-        try {
-            Document document = Jsoup.connect(url).get();
-            Elements elements = document.select(css);
-            for (Element element : elements) {
-                String link = element.attr(attribute);
-                championList.add(new Champion(link));
-            }
-
-        } catch (IOException e) {
-            logger.error("Une erreur s'est produite lors de la lecture du site web", e);
-        }
-
-        return championList;
-    }
 
 
     /**
@@ -198,9 +194,7 @@ public class WebsiteReader implements ItemReader<List<Champion>> {
      *
      * @param websiteUrl the website url
      */
-    public void setWebsiteUrl(String websiteUrl) {
-        this.websiteUrl = websiteUrl;
-    }
+
 
     /**
      * Gets website base url.

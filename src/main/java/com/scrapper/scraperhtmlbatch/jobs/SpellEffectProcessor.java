@@ -13,70 +13,65 @@ import java.util.*;
  * The type Spell effect processor.
  */
 @Component
-public class SpellEffectProcessor implements ItemProcessor<List<Champion>, List<SpellEffect>> {
+public class SpellEffectProcessor implements ItemProcessor<Champion, List<SpellEffect>> {
 
 
     private static final Logger logger = Logger.getLogger(SpellEffectProcessor.class);
 
     @Override
-    public List<SpellEffect> process(List<Champion> championList) throws Exception {
+    public List<SpellEffect> process(Champion champion) {
         // Créer une instance de SpellEffect
-        List<SpellEffect> res = new ArrayList<>();
-        championList = switchChNameWithDB(championList);
-        championList.forEach((champion ->
-                res.addAll(spellForChamp(champion))));
-        return res;
+        champion = switchChNameWithDB(champion);
+
+        return new ArrayList<>(spellForChamp(champion));
     }
 
-    public List<Champion> switchChNameWithDB(List<Champion> championList) {
+    public Champion switchChNameWithDB(Champion champion) {
         // Récupérer les noms de champions enregistrés en base de données avec Hibernate
         List<String> dbChampionNames = getChampionNamesFromDB();
 
         // Parcourir la liste des champions
-        for (Champion champion : championList) {
-            String championName = champion.getName();
+        String championName = champion.getName();
 
-            // Vérifier si le nom du champion existe en base de données
-            if (!dbChampionNames.contains(championName)) {
-                // Rechercher le nom le plus similaire en utilisant l'algorithme de Levenshtein
-                String mostSimilarName = findMostSimilarName(championName, dbChampionNames);
-                if (mostSimilarName.equals("Akshan")) {
-                    logger.info(mostSimilarName + " trouvé pour " + champion.getName());
-                    if (champion.getName().equals("ksante")) {
-                        mostSimilarName = "K'Santé";
-                        logger.info("champion name modifié en "  + mostSimilarName);
-                    }
+        // Vérifier si le nom du champion existe en base de données
+        if (!dbChampionNames.contains(championName)) {
+            // Rechercher le nom le plus similaire en utilisant l'algorithme de Levenshtein
+            String mostSimilarName = findMostSimilarName(championName, dbChampionNames);
+            if (mostSimilarName.equals("Akshan")) {
+                logger.info(mostSimilarName + " trouvé pour " + champion.getName());
+                if (champion.getName().equals("ksante")) {
+                    mostSimilarName = "K'Santé";
+                    logger.info("champion name modifié en " + mostSimilarName);
                 }
-                if (mostSimilarName.equals("Neeko")) {
-                    logger.info(mostSimilarName + " trouvé pour " + champion.getName());
-                    if (champion.getName().equals("velkoz")) {
-                        mostSimilarName = "Vel'Koz";
-                        logger.info("champion name modifié en "  + mostSimilarName);
-                    }
-                }
-
-                if (mostSimilarName.equals("Aatrox")) {
-                    logger.info(mostSimilarName + " trouvé pour " + champion.getName());
-                    if (champion.getName().equals("master-yi")) {
-                        mostSimilarName = "MasterYi";
-                        logger.info("champion name modifié en "  + mostSimilarName);
-                    }
-
-                }
-                if (champion.getName().equals("nunu-amp-willump")) {
-                    mostSimilarName = "Nunu";
-                }
-                if (champion.getName().equals("wukong")) {
-                    mostSimilarName = "MonkeyKing";
-                }
-
-                // Remplacer le nom du champion par le nom le plus similaire
-                champion.setName(mostSimilarName);
             }
-        }
-        Collections.sort(championList, Comparator.comparing(Champion::getName));
+            if (mostSimilarName.equals("Neeko")) {
+                logger.info(mostSimilarName + " trouvé pour " + champion.getName());
+                if (champion.getName().equals("velkoz")) {
+                    mostSimilarName = "Vel'Koz";
+                    logger.info("champion name modifié en " + mostSimilarName);
+                }
+            }
 
-        return championList;
+            if (mostSimilarName.equals("Aatrox")) {
+                logger.info(mostSimilarName + " trouvé pour " + champion.getName());
+                if (champion.getName().equals("master-yi")) {
+                    mostSimilarName = "MasterYi";
+                    logger.info("champion name modifié en " + mostSimilarName);
+                }
+
+            }
+            if (champion.getName().equals("nunu-amp-willump")) {
+                mostSimilarName = "Nunu";
+            }
+            if (champion.getName().equals("wukong")) {
+                mostSimilarName = "MonkeyKing";
+            }
+
+            // Remplacer le nom du champion par le nom le plus similaire
+            champion.setName(mostSimilarName);
+        }
+
+        return champion;
     }
 
     private List<String> getChampionNamesFromDB() {

@@ -14,16 +14,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-public class ScraperHtmlBatchApplication implements CommandLineRunner {
+public class ScraperHtmlBatchApplication {
 
 
     public static void main(String[] args) {
         SpringApplication.run(ScraperHtmlBatchApplication.class, args);
     }
 
-    @Override
-    public void run(String... args) throws Exception {
-        System.out.println("running");
 
-    }
 }
