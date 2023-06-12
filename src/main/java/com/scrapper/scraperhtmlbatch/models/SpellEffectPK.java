@@ -8,10 +8,12 @@ import java.util.Objects;
 public class SpellEffectPK implements Serializable {
     @Column(name = "champion_name")
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String championName;
     @Column(name = "letter")
     @Basic
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String letter;
 
     public String getChampionName() {

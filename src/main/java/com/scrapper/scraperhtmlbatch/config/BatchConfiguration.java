@@ -5,7 +5,6 @@ import com.scrapper.scraperhtmlbatch.jobs.SpellEffectProcessor;
 import com.scrapper.scraperhtmlbatch.jobs.WebsiteReader;
 import com.scrapper.scraperhtmlbatch.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
-import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -18,12 +17,10 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
@@ -83,18 +80,16 @@ public class BatchConfiguration {
         }
     }
 
-
     @Bean
     public PlatformTransactionManager transactionManager() {
-        return new ResourcelessTransactionManager();
+        return new JpaTransactionManager();
     }
-
 
     @Bean
     public Step sampleStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("sampleStep")
                 .repository(jobRepository)
-                .<List<Champion>, List<SpellEffect>>chunk(10,transactionManager)
+                .<List<Champion>, List<SpellEffect>>chunk(1000,transactionManager)
                 .reader(getWebsiteReader())
                 .processor(getSpellEffectProcessor())
                 .writer(dbWriter(sessionFactory))
@@ -103,7 +98,7 @@ public class BatchConfiguration {
 
     @Bean
     public Job sampleJob(JobRepository jobRepository, Step sampleStep) {
-        return new JobBuilder("sampleJob", jobRepository)
+        return new JobBuilder("dbwriter", jobRepository)
                 .start(sampleStep)
                 .build();
     }

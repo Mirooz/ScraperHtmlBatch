@@ -35,7 +35,7 @@ public class ScraperHtmlBatchApplicationTests {
     @Autowired
     private DbWriter dbWriter;
 
-    private static final org.apache.log4j.Logger logger = Logger.getLogger(ScraperHtmlBatchApplicationTests.class);
+    private static final Logger logger = Logger.getLogger(ScraperHtmlBatchApplicationTests.class);
 
 
     @BeforeEach
