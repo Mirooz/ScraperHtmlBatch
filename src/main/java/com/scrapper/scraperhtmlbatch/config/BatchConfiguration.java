@@ -1,5 +1,6 @@
 package com.scrapper.scraperhtmlbatch.config;
 
+import com.scrapper.scraperhtmlbatch.repository.ChampionsRepository;
 import com.scrapper.scraperhtmlbatch.utils.ChampionScraper;
 import com.scrapper.scraperhtmlbatch.jobs.DbWriter;
 import com.scrapper.scraperhtmlbatch.jobs.SpellEffectProcessor;
@@ -16,6 +17,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

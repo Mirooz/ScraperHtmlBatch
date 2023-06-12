@@ -20,7 +20,6 @@ import org.apache.log4j.Logger;
  * The type Website reader.
  */
 @Component
-@StepScope
 public class WebsiteReader implements ItemReader<Champion> {
     private List<Champion> championList; // Liste des objets à lire
     private int currentIndex = 0; // Index de l'élément actuel

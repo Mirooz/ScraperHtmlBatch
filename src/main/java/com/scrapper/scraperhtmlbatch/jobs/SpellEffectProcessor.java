@@ -1,10 +1,13 @@
 package com.scrapper.scraperhtmlbatch.jobs;
 
+import com.scrapper.scraperhtmlbatch.models.Champions;
 import com.scrapper.scraperhtmlbatch.models.SpellEffect;
+import com.scrapper.scraperhtmlbatch.repository.ChampionsRepository;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
 import com.scrapper.scraperhtmlbatch.utils.Spell;
 import org.apache.log4j.Logger;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -15,6 +18,8 @@ import java.util.*;
 @Component
 public class SpellEffectProcessor implements ItemProcessor<Champion, List<SpellEffect>> {
 
+    @Autowired
+    private ChampionsRepository championsRepository;
 
     private static final Logger logger = Logger.getLogger(SpellEffectProcessor.class);
 
@@ -74,175 +79,15 @@ public class SpellEffectProcessor implements ItemProcessor<Champion, List<SpellE
         return champion;
     }
 
-    private List<String> getChampionNamesFromDB() {
+    public List<String> getChampionNamesFromDB() {
 
 
-        return new ArrayList<>(Arrays.asList(
-                "Aatrox",
-                "Ahri",
-                "Akali",
-                "Akshan",
-                "Alistar",
-                "Azir",
-                "Viktor",
-                "Zoe",
-                "Kennen",
-                "Caitlyn",
-                "Amumu",
-                "Heimerdinger",
-                "Anivia",
-                "Annie",
-                "Aphelios",
-                "Ashe",
-                "AurelionSol",
-                "Bard",
-                "Belveth",
-                "Blitzcrank",
-                "Brand",
-                "Braum",
-                "Camille",
-                "Cassiopeia",
-                "Chogath",
-                "Corki",
-                "Darius",
-                "Diana",
-                "Draven",
-                "DrMundo",
-                "Ekko",
-                "Elise",
-                "Evelynn",
-                "Ezreal",
-                "Fiddlesticks",
-                "Fiora",
-                "Fizz",
-                "Galio",
-                "Gangplank",
-                "Garen",
-                "Gnar",
-                "Gragas",
-                "Graves",
-                "Gwen",
-                "Hecarim",
-                "Illaoi",
-                "Irelia",
-                "Ivern",
-                "Janna",
-                "JarvanIV",
-                "Jax",
-                "Jayce",
-                "Jhin",
-                "Jinx",
-                "Kaisa",
-                "Kalista",
-                "Karma",
-                "Karthus",
-                "Kassadin",
-                "Katarina",
-                "Kayle",
-                "Kayn",
-                "Khazix",
-                "Kindred",
-                "Kled",
-                "KogMaw",
-                "KSante",
-                "Leblanc",
-                "LeeSin",
-                "Leona",
-                "Lillia",
-                "Lissandra",
-                "Lucian",
-                "Lulu",
-                "Lux",
-                "Malphite",
-                "Malzahar",
-                "Maokai",
-                "MasterYi",
-                "Milio",
-                "MissFortune",
-                "MonkeyKing",
-                "Mordekaiser",
-                "Morgana",
-                "Nami",
-                "Nasus",
-                "Nautilus",
-                "Neeko",
-                "Riven",
-                "Nidalee",
-                "Nilah",
-                "Nocturne",
-                "Nunu",
-                "Olaf",
-                "Orianna",
-                "Ornn",
-                "Pantheon",
-                "Poppy",
-                "Rumble",
-                "Pyke",
-                "Qiyana",
-                "Quinn",
-                "Rakan",
-                "Rammus",
-                "RekSai",
-                "Rell",
-                "Renata",
-                "Renekton",
-                "Rengar",
-                "Ryze",
-                "Samira",
-                "Sejuani",
-                "Senna",
-                "Seraphine",
-                "Sett",
-                "Shaco",
-                "Shen",
-                "Shyvana",
-                "Singed",
-                "Sion",
-                "Sivir",
-                "Skarner",
-                "Sona",
-                "Soraka",
-                "Swain",
-                "Sylas",
-                "Syndra",
-                "TahmKench",
-                "Vayne",
-                "Taliyah",
-                "Talon",
-                "Taric",
-                "Teemo",
-                "Thresh",
-                "Tristana",
-                "Trundle",
-                "Tryndamere",
-                "TwistedFate",
-                "Twitch",
-                "Udyr",
-                "Urgot",
-                "Varus",
-                "Veigar",
-                "Velkoz",
-                "Vex",
-                "Vi",
-                "Viego",
-                "Vladimir",
-                "Volibear",
-                "Warwick",
-                "Xayah",
-                "Xerath",
-                "XinZhao",
-                "Yasuo",
-                "Yone",
-                "Yorick",
-                "Yuumi",
-                "Zac",
-                "Zed",
-                "Zeri",
-                "Ziggs",
-                "Zilean",
-                "Zyra"
-        ));
-
+        List<Champions> champions = championsRepository.findAll();
+        List<String> championNames = new ArrayList<>();
+        for (Champions champion : champions) {
+            championNames.add(champion.getId());
+        }
+        return championNames;
     }
 
     private String findMostSimilarName(String targetName, List<String> names) {

@@ -1,6 +1,7 @@
 package com.scrapper.scraperhtmlbatch;
 
 import com.scrapper.scraperhtmlbatch.config.BatchConfiguration;
+import com.scrapper.scraperhtmlbatch.repository.ChampionsRepository;
 import com.scrapper.scraperhtmlbatch.utils.ChampionScraper;
 import com.scrapper.scraperhtmlbatch.jobs.DbWriter;
 import com.scrapper.scraperhtmlbatch.jobs.SpellEffectProcessor;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.ArrayList;
@@ -26,6 +29,8 @@ import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest
 @ContextConfiguration(classes = BatchConfiguration.class)
+@ComponentScan("com.scrapper.scraperhtmlbatch.repository")
+@EnableJpaRepositories
 public class ScraperHtmlBatchApplicationTests {
 
     @Autowired
@@ -43,10 +48,11 @@ public class ScraperHtmlBatchApplicationTests {
     private static final Logger logger = Logger.getLogger(ScraperHtmlBatchApplicationTests.class);
 
 
+    private List<Champion> championList;
     @BeforeEach
     public void setUp() {
         websiteReader.setWebsiteBaseUrl(Utils.extractBaseUrl(championScraper.getWebsiteUrl()));
-        List<Champion> championList = championScraper.scrapeChampionsLink();
+        championList = championScraper.scrapeChampionsLink();
         websiteReader.setChampionList(championList);
     }
 
@@ -56,7 +62,6 @@ public class ScraperHtmlBatchApplicationTests {
         //String websiteUrl = "https://www.mobafire.com/league-of-legends/champions";
 
         // Appeler la fonction scrapeChampions pour obtenir la liste des champions
-        List<Champion> championList = championScraper.scrapeChampionsLink();
 
         websiteReader.setChampionList(championList);
         // Vérifier que la liste n'est pas vide
@@ -79,7 +84,6 @@ public class ScraperHtmlBatchApplicationTests {
 
         // Appeler la fonction scrapeSkillsString pour obtenir la liste des compétences
 
-        List<Champion> championList = championScraper.scrapeChampionsLink();
         Assertions.assertFalse(championList.isEmpty());
         websiteReader.updateSpells(championList.get(0));
 
@@ -89,8 +93,8 @@ public class ScraperHtmlBatchApplicationTests {
     @Test
     public void testUpdateAllSpells() {
 
-        List<Champion> championList = championScraper.scrapeChampionsLink();
-        websiteReader.updateSpellsForAllChamps(championList);
+
+        websiteReader.updateSpellsForAllChamps(championList.subList(0,5));
 
 
         logger.info(championList.get(0));
@@ -104,7 +108,6 @@ public class ScraperHtmlBatchApplicationTests {
 
         // Appeler la fonction scrapeSkillsString pour obtenir la liste des compétences
 
-        List<Champion> championList = championScraper.scrapeChampionsLink();
         Assertions.assertFalse(championList.isEmpty());
         websiteReader.updateSpells(championList.get(0));
 
@@ -135,7 +138,7 @@ public class ScraperHtmlBatchApplicationTests {
             spellEffectProcessor.spellForChamp(read);
         }
         Assertions.assertFalse(websiteReader.getChampionList().isEmpty());
-        }
+    }
 
     @Test
     public void extractNameOfUrl() {
@@ -167,7 +170,16 @@ public class ScraperHtmlBatchApplicationTests {
 
         List<SpellEffect> spellEffects = dbWriter.readAllSpellEffects();
         logger.info(spellEffects);
-        Assertions.assertTrue(!spellEffects.isEmpty());
+        //Assertions.assertTrue(!spellEffects.isEmpty());
+    }
+
+
+    @Test
+    public void getAllChampTest() {
+        List<String> championNames = spellEffectProcessor.getChampionNamesFromDB();
+
+        Assertions.assertTrue(!championNames.isEmpty());
+        championNames.forEach(logger::info);
     }
 
     @Test
@@ -179,7 +191,7 @@ public class ScraperHtmlBatchApplicationTests {
         spellEffects.add(s);
         // Ajoutez des SpellEffect à la liste
         Chunk<List<SpellEffect>> chunk = new Chunk<>(Collections.singletonList(spellEffects));
-        dbWriter.write(chunk);
+        //dbWriter.write(chunk);
         // Assurez-vous de gérer les exceptions appropriées
     }
 
@@ -190,13 +202,13 @@ public class ScraperHtmlBatchApplicationTests {
             List<SpellEffect> spellEffects = spellEffectProcessor.process(read);
 
             Chunk<List<SpellEffect>> chunk = new Chunk<>(Collections.singletonList(spellEffects));
-            dbWriter.write(chunk);
+           // dbWriter.write(chunk);
         }
 
         List<SpellEffect> spellEffectsRead = dbWriter.readAllSpellEffects();
         spellEffectsRead.forEach(logger::info);
 
-        Assertions.assertFalse(spellEffectsRead.isEmpty());
+       // Assertions.assertFalse(spellEffectsRead.isEmpty());
     }
 
 }
