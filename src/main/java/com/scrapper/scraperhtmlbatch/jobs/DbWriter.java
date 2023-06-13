@@ -1,8 +1,9 @@
 package com.scrapper.scraperhtmlbatch.jobs;
 
 import com.scrapper.scraperhtmlbatch.models.Champions;
+import com.scrapper.scraperhtmlbatch.models.SpellCooldown;
+import com.scrapper.scraperhtmlbatch.models.SpellCost;
 import com.scrapper.scraperhtmlbatch.models.SpellEffect;
-import com.scrapper.scraperhtmlbatch.utils.Champion;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -11,7 +12,6 @@ import org.hibernate.query.Query;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -38,6 +38,12 @@ public class DbWriter implements ItemWriter<List<SpellEffect>> {
                 try {
                     if (!session.contains(spellEffect)) {
                         session.saveOrUpdate(spellEffect);
+                        for (SpellCost spellCost : spellEffect.getSpellCost()){
+                            session.saveOrUpdate(spellCost);
+                        }
+                        for (SpellCooldown spellCooldown : spellEffect.getSpellCooldown()){
+                            session.saveOrUpdate(spellCooldown);
+                        }
                     } else {
                         logger.info("Déjà persisté : " + spellEffect);
                     }

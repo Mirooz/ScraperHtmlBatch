@@ -3,20 +3,30 @@ package com.scrapper.scraperhtmlbatch.models;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class SpellEffectPK implements Serializable {
+public class SpellCostPK implements Serializable {
+    private int level;
     private String championName;
     private String letter;
 
     // Constructeur par défaut
-    public SpellEffectPK() {
+    public SpellCostPK() {
     }
 
-    public SpellEffectPK(String championName, String letter) {
+    public SpellCostPK(int level, String championName, String letter) {
+        this.level = level;
         this.championName = championName;
         this.letter = letter;
     }
 
     // Getters et Setters
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
 
     public String getChampionName() {
         return championName;
@@ -40,12 +50,12 @@ public class SpellEffectPK implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SpellEffectPK that = (SpellEffectPK) o;
-        return Objects.equals(championName, that.championName) && Objects.equals(letter, that.letter);
+        SpellCostPK that = (SpellCostPK) o;
+        return level == that.level && Objects.equals(championName, that.championName) && Objects.equals(letter, that.letter);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(championName, letter);
+        return Objects.hash(level, championName, letter);
     }
 }

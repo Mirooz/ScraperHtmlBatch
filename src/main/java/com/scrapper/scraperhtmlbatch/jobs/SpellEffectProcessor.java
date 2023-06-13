@@ -1,6 +1,8 @@
 package com.scrapper.scraperhtmlbatch.jobs;
 
 import com.scrapper.scraperhtmlbatch.models.Champions;
+import com.scrapper.scraperhtmlbatch.models.SpellCooldown;
+import com.scrapper.scraperhtmlbatch.models.SpellCost;
 import com.scrapper.scraperhtmlbatch.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.repository.ChampionsRepository;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
@@ -10,7 +12,11 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * The type Spell effect processor.
@@ -156,16 +162,40 @@ public class SpellEffectProcessor implements ItemProcessor<Champion, List<SpellE
 
     private SpellEffect createSpellEffect(Champion champion, Spell spell) {
         SpellEffect spellEffect = new SpellEffect();
-        //spellEffect.setChampionName(capitalizeFirstLetter(champion.getName().toLowerCase()));
         spellEffect.setChampionName(champion.getName());
         spellEffect.setDescription(spell.getDescription());
         spellEffect.setLetter(spell.getLetter());
-        spellEffect.setCooldown(spell.getCooldown());
         spellEffect.setRange(spell.getRange());
-        spellEffect.setCost(spell.getCost());
+        // spellEffect.setCost(splitToList(spell.getCost(), "/", Integer::parseInt, Integer.class));
+        // spellEffect.setCooldown(splitToList(spell.getCooldown(), "/", Double::parseDouble, Double.class));
         spellEffect.setName(spell.getName());
+
+        List<Integer> costs = splitToList(spell.getCost(), "/", Integer::parseInt, Integer.class);
+        List<Double> cooldowns = splitToList(spell.getCooldown(), "/", Double::parseDouble, Double.class);
+
+        for (int i = 0; i < costs.size(); i++) {
+            SpellCost cost = new SpellCost(i+1, spellEffect.getChampionName(), spellEffect.getLetter(), costs.get(i));
+            spellEffect.addCost(cost);
+        }
+        for (int i = 0; i < cooldowns.size(); i++) {
+            SpellCooldown cooldown = new SpellCooldown(i+1, spellEffect.getChampionName(), spellEffect.getLetter(), cooldowns.get(i));
+            spellEffect.addSpellCooldown(cooldown);
+        }
         return spellEffect;
     }
+
+    private <T> List<T> splitToList(String input, String delimiter, Function<String, T> mapper, Class<T> type) {
+        if (input == null || input.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String[] parts = input.split(delimiter);
+        return Arrays.stream(parts)
+                .map(String::trim)
+                .map(mapper)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
 
     private String capitalizeFirstLetter(String input) {
         if (input == null || input.isEmpty()) {

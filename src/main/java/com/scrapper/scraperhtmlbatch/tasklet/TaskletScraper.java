@@ -9,6 +9,7 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,16 +17,17 @@ import java.util.List;
 @Component
 public class TaskletScraper implements Tasklet {
 
-    private WebsiteReader websiteReader;
-    private ChampionScraper championScraper;
+    private final WebsiteReader websiteReader;
+    private final ChampionScraper championScraper;
 
     private static final Logger logger = Logger.getLogger(TaskletScraper.class);
     public TaskletScraper(WebsiteReader websiteReader,ChampionScraper championScraper){
         this.championScraper = championScraper;
         this.websiteReader = websiteReader;
     }
+    @Override
     public RepeatStatus execute(StepContribution contribution,
-                                ChunkContext chunkContext) throws Exception {
+                                ChunkContext chunkContext)  {
         List<Champion> championList = championScraper.scrapeChampionsLink();
         WebsiteReader reader = websiteReader;
         reader.setWebsiteBaseUrl(Utils.extractBaseUrl(championScraper.getWebsiteUrl()));
