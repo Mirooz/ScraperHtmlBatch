@@ -1,8 +1,9 @@
 package com.scrapper.scraperhtmlbatch;
 
+import com.library.lolmodel.models.Champions;
+import com.library.lolmodel.models.SpellEffect;
+import com.library.lolmodel.repository.ChampionsRepository;
 import com.scrapper.scraperhtmlbatch.config.BatchConfiguration;
-import com.scrapper.scraperhtmlbatch.models.Champions;
-import com.scrapper.scraperhtmlbatch.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.utils.ChampionScraper;
 import com.scrapper.scraperhtmlbatch.jobs.DbWriter;
 import com.scrapper.scraperhtmlbatch.jobs.SpellEffectProcessor;
@@ -28,8 +29,6 @@ import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest
 @ContextConfiguration(classes = BatchConfiguration.class)
-@ComponentScan("com.scrapper.scraperhtmlbatch.repository")
-@EnableJpaRepositories
 public class ScraperHtmlBatchApplicationTests {
 
     @Autowired

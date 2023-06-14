@@ -1,9 +1,9 @@
 package com.scrapper.scraperhtmlbatch.jobs;
 
-import com.scrapper.scraperhtmlbatch.models.Champions;
-import com.scrapper.scraperhtmlbatch.models.SpellCooldown;
-import com.scrapper.scraperhtmlbatch.models.SpellCost;
-import com.scrapper.scraperhtmlbatch.models.SpellEffect;
+import com.library.lolmodel.models.Champions;
+import com.library.lolmodel.models.SpellCooldown;
+import com.library.lolmodel.models.SpellCost;
+import com.library.lolmodel.models.SpellEffect;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;

@@ -1,15 +1,17 @@
 package com.scrapper.scraperhtmlbatch.jobs;
 
-import com.scrapper.scraperhtmlbatch.models.Champions;
-import com.scrapper.scraperhtmlbatch.models.SpellCooldown;
-import com.scrapper.scraperhtmlbatch.models.SpellCost;
-import com.scrapper.scraperhtmlbatch.models.SpellEffect;
-import com.scrapper.scraperhtmlbatch.repository.ChampionsRepository;
+
+import com.library.lolmodel.models.Champions;
+import com.library.lolmodel.models.SpellCooldown;
+import com.library.lolmodel.models.SpellCost;
+import com.library.lolmodel.models.SpellEffect;
+import com.library.lolmodel.repository.ChampionsRepository;
 import com.scrapper.scraperhtmlbatch.utils.Champion;
 import com.scrapper.scraperhtmlbatch.utils.Spell;
 import org.apache.log4j.Logger;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

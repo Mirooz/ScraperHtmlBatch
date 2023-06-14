@@ -1,6 +1,7 @@
 package com.scrapper.scraperhtmlbatch.config;
 
-import com.scrapper.scraperhtmlbatch.models.SpellEffect;
+import com.library.lolmodel.config.DataSourceConfiguration;
+import com.library.lolmodel.models.SpellEffect;
 import com.scrapper.scraperhtmlbatch.utils.ChampionScraper;
 import com.scrapper.scraperhtmlbatch.jobs.DbWriter;
 import com.scrapper.scraperhtmlbatch.jobs.SpellEffectProcessor;
@@ -18,8 +19,10 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -28,6 +31,7 @@ import java.util.List;
 @Configuration
 @EnableBatchProcessing
 @Import(DataSourceConfiguration.class)
+@EnableJpaRepositories("com.library.lolmodel.repository")
 public class BatchConfiguration {
 
 
@@ -69,10 +73,6 @@ public class BatchConfiguration {
 
 
 
-    @Bean
-    public PlatformTransactionManager transactionManager() {
-        return new JpaTransactionManager();
-    }
 
     @Bean
     public Tasklet getTaskletScraper() {
