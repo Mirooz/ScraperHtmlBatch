@@ -2,19 +2,16 @@ package com.scrapper.scraperhtmlbatch.jobs;
 
 import com.scrapper.scraperhtmlbatch.utils.Champion;
 import com.scrapper.scraperhtmlbatch.utils.Spell;
+import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
 
 /**
  * The type Website reader.
@@ -84,7 +81,7 @@ public class WebsiteReader implements ItemReader<Champion> {
                 String name = element.select(".champ__abilities__item__name").text();
 
                 String champNameWithCap = capitalizeFirstLetter(champion.getName());
-                if (name.indexOf(champNameWithCap) == -1) {
+                if (name.indexOf(champNameWithCap) == -1 && champNameWithCap!=null) {
                     switch (champNameWithCap) {
                         case "Reksai":
                             champNameWithCap = "Rek'Sai";

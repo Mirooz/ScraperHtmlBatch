@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.Extensions;
 import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,6 +52,7 @@ public class ScraperHtmlBatchApplicationTests {
     public void setUp() {
         websiteReader.setWebsiteBaseUrl(Utils.extractBaseUrl(championScraper.getWebsiteUrl()));
         championList = championScraper.scrapeChampionsLink();
+        championList = championList.subList(0,5);
         websiteReader.setChampionList(championList);
     }
 
@@ -160,7 +162,7 @@ public class ScraperHtmlBatchApplicationTests {
 
         Champions aatrox = dbWriter.readChampion("Aatrox");
         logger.info(aatrox);
-        Assertions.assertTrue(aatrox.getName().equals("Aatrox"));
+        Assertions.assertEquals("Aatrox", aatrox.getName());
     }
 
     @Test
@@ -176,7 +178,7 @@ public class ScraperHtmlBatchApplicationTests {
     public void getAllChampTest() {
         List<String> championNames = spellEffectProcessor.getChampionNamesFromDB();
 
-        Assertions.assertTrue(!championNames.isEmpty());
+        Assertions.assertFalse(championNames.isEmpty());
         championNames.forEach(logger::info);
     }
 

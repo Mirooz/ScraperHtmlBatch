@@ -11,7 +11,6 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -29,35 +28,35 @@ public class DbWriter implements ItemWriter<List<SpellEffect>> {
 
     @Override
     public void write(Chunk<? extends List<SpellEffect>> chunk) throws Exception {
-        Session session = sessionFactory.openSession();
+        try(Session session = sessionFactory.openSession()) {
 
-        Transaction transaction = session.beginTransaction();
+            Transaction transaction = session.beginTransaction();
 
-        for (List<SpellEffect> ts : chunk) {
-            for (SpellEffect spellEffect : ts) {
-                try {
-                    if (!session.contains(spellEffect)) {
-                        session.saveOrUpdate(spellEffect);
-                        for (SpellCost spellCost : spellEffect.getSpellCost()){
-                            session.saveOrUpdate(spellCost);
+            for (List<SpellEffect> ts : chunk) {
+                for (SpellEffect spellEffect : ts) {
+                    try {
+                        if (!session.contains(spellEffect)) {
+                            session.saveOrUpdate(spellEffect);
+                            for (SpellCost spellCost : spellEffect.getSpellCost()) {
+                                session.saveOrUpdate(spellCost);
+                            }
+                            for (SpellCooldown spellCooldown : spellEffect.getSpellCooldown()) {
+                                session.saveOrUpdate(spellCooldown);
+                            }
+                        } else {
+                            logger.info("Déjà persisté : " + spellEffect);
                         }
-                        for (SpellCooldown spellCooldown : spellEffect.getSpellCooldown()){
-                            session.saveOrUpdate(spellCooldown);
-                        }
-                    } else {
-                        logger.info("Déjà persisté : " + spellEffect);
+                    } catch (Exception e) {
+                        transaction.rollback();
+                        logger.error("Exception during write operation: ", e);
+                        logger.error("Error processing spellEffect: " + spellEffect);
+                        throw new Exception("Error during write operation", e);
                     }
-                } catch (Exception e) {
-                    transaction.rollback();
-                    logger.error("Exception during write operation: ", e);
-                    logger.error("Error processing spellEffect: " + spellEffect);
-                    throw new Exception("Error during write operation", e);
                 }
             }
-        }
 
-        transaction.commit();
-        session.close();
+            transaction.commit();
+        }
     }
 
 

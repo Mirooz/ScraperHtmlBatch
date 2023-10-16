@@ -8,7 +8,7 @@ public class Champion {
     private String name;
     private String url;
     private Spell passive;
-    private List<Spell> spells = new ArrayList<>();
+    private final List<Spell> spells = new ArrayList<>();
 
     public Champion(String url) {
         this.url = url;

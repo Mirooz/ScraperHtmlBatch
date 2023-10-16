@@ -11,7 +11,6 @@ import com.scrapper.scraperhtmlbatch.utils.Spell;
 import org.apache.log4j.Logger;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
